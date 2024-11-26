@@ -1,36 +1,48 @@
 const fs = require('fs');
 
-/**
- * Reads CSV file containing student data, parses the data and
- * prints it to stdout.
- * @param {string} dbPath - path to csv file.
- */
-function countStudents(dbPath) {
+function countStudents(path) {
   try {
-    let students = fs.readFileSync(dbPath, 'utf-8');
-    students = students.split('\n');
-    students = students.slice(1, students.length - 1);
-    const courses = new Map();
+    // Read the file content synchronously
+    const data = fs.readFileSync(path, 'utf-8');
+    
+    // Split data into lines, filtering out any empty lines
+    const lines = data.split('\n').filter((line) => line.trim() !== '');
 
-    // Parse CSV data creating a map of courseData objects.
-    students.forEach((student) => {
-      const studentData = student.split(',');
-      const firstName = studentData[0];
-      const field = studentData[3];
-      if (courses.has(field)) {
-        courses.get(field).students.push(firstName);
-        courses.get(field).count += 1;
-      } else {
-        courses.set(field, { students: [firstName], count: 1 });
+    // Remove the header line (first line)
+    const headers = lines.shift().split(',');
+
+    // Define a map to store students by field
+    const fields = {};
+
+    // Iterate over each line to process student data
+    lines.forEach((line) => {
+      const student = line.split(',');
+
+      // Ensure the line is not malformed (matches header length)
+      if (student.length === headers.length) {
+        const firstName = student[0];
+        const field = student[student.length - 1];
+
+        // If the field is not present in the map, initialize it
+        if (!fields[field]) {
+          fields[field] = [];
+        }
+        // Add student to the field
+        fields[field].push(firstName);
       }
     });
 
-    // Display information from map
-    console.log(Number of students: ${students.length});
-    courses.forEach((courseData, course) => {
-      console.log(Number of students in ${course}: ${courseData.count}. List: ${courseData.students.join(', ')});
-    });
+    // Calculate the total number of students
+    const totalStudents = Object.values(fields).reduce((acc, students) => acc + students.length, 0);
+    
+    console.log('Number of students: ${totalStudents}');
+
+    // Print each field with the number of students and list of names
+    for (const [field, students] of Object.entries(fields)) {
+      console.log('Number of students in ${field}: ${students.length}. List: ${students.join(', ')}');
+    }
   } catch (error) {
+    // Handle the case where the file can't be read
     throw new Error('Cannot load the database');
   }
 }
