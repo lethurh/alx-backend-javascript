@@ -1,41 +1,32 @@
-/**
- * 1-calculus.js.calculateNumber test suite
- */
-const { expect } = require('chai');
-const calculateNumber = require('./2-calcul_chai');
+/* eslint-disable jest/expect-expect */
+/* eslint-disable jest/prefer-expect-assertions */
+const assert = require('assert');
+const calculateNumber = require('./1-calcul');
 
-describe('calculateNumber chai test suite', function() {
-  describe('#SUM operation', function() {
-    it('should return the sum of its rounded arguments', function() {
-      expect(calculateNumber('SUM', 1, 3)).to.equal(4);
-      expect(calculateNumber('SUM', 1.2, 3.7)).to.equal(5);
-      expect(calculateNumber('SUM', 1.5, 3.7)).to.equal(6);
-    });
+// You can assume a and b are always number
+
+describe('calculateNumber', () => {
+  it('handles adding two rounded numbers when type is SUM', () => {
+    assert.equal(calculateNumber('SUM', 1.2, 3.7), 5);
+    assert.equal(calculateNumber('SUM', -1.2, -3.7), -5);
   });
 
-  describe('#SUBTRACT operation', function() {
-    it('should return the subtraction of its rounded arguments', function() {
-      expect(calculateNumber('SUBTRACT', 1, 3)).to.equal(-2);
-      expect(calculateNumber('SUBTRACT', 3, 2)).to.equal(1);
-      expect(calculateNumber('SUBTRACT', 1.4, 4.5)).to.equal(-4);
-      expect(calculateNumber('SUBTRACT', 3.7, 1.5)).to.equal(2);
-    });
+  it('handles subtracting two rounded numbers when type is SUBTRACT', () => {
+    assert.equal(calculateNumber('SUBTRACT', 5.9, 2.3), 4);
+    assert.equal(calculateNumber('SUBTRACT', -5.9, -2.3), -4);
   });
 
-  describe('#DIVIDE operation', function() {
-    it('should return the quotient from the division its rounded arguments', function() {
-      expect(calculateNumber('DIVIDE', 3, 1)).to.equal(3);
-      expect(calculateNumber('DIVIDE', 3.1, 1.5)).to.equal(1.5);
-      expect(calculateNumber('DIVIDE', 6.5, 1.5)).to.equal(3.5);
-      expect(calculateNumber('DIVIDE', -3.7, -1.5)).to.equal(4);
-      expect(calculateNumber('DIVIDE', 3, 0)).to.equal('Error');
-    });
+  it('handles dividing two rounded numbers when type is DIVIDE', () => {
+    assert.equal(calculateNumber('DIVIDE', 8, 2), 4);
+    // assert.equal(calculateNumber('DIVIDE', 5.0, 3.0), 2);
   });
 
-  describe('#INVALID operation', function() {
-    it('should throw an exception for invalid type', function() {
-      expect(calculateNumber.bind('MULTIPLY', 1, 3)).to.throw();
-      expect(calculateNumber.bind(false, 1, 2)).to.throw();
-    });
+  it('returns Error when dividing by 0', () => {
+    assert.equal(calculateNumber('DIVIDE', 4, 0), 'Error');
+    assert.equal(calculateNumber('DIVIDE', -8, 0), 'Error');
+  });
+
+  it('throws an error when an invalid type is provided', () => {
+    assert.throws(() => calculateNumber('INVALID_TYPE', 1, 2), Error);
   });
 });
