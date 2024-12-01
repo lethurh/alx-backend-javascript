@@ -2,9 +2,6 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const databaseFile = process.argv[2];
-
-// Helper function to read and process the CSV file
 function countStudents(database) {
   return new Promise((resolve, reject) => {
     fs.readFile(database, 'utf-8', (err, data) => {
@@ -13,56 +10,70 @@ function countStudents(database) {
         return;
       }
       
-      const lines = data.split('\n').filter((line) => line.trim() !== '');
-      const students = lines.slice(1).map((line) => line.split(',')).filter((fields) => fields.length === 4);
+      const lines = data.trim().split('\n').filter(line => line);
+      const headers = lines.shift().split(',');
 
-      const studentCount = students.length;
-      const fields = {};
+      const fieldIdx = headers.indexOf('field');
+      const firstNameIdx = headers.indexOf('firstname');
 
-      students.forEach((student) => {
-        const field = student[3];
-        if (!fields[field]) {
-          fields[field] = [];
+      const studentsByField = {};
+      const allStudents = [];
+
+      lines.forEach((line) => {
+        const studentData = line.split(',');
+        if (studentData.length >= headers.length) {
+          const field = studentData[fieldIdx];
+          const firstName = studentData[firstNameIdx];
+
+          if (!studentsByField[field]) {
+            studentsByField[field] = [];
+          }
+
+          studentsByField[field].push(firstName);
+          allStudents.push(firstName);
         }
-        fields[field].push(student[0]);
       });
 
-      const result = [
-        Number of students: ${studentCount},
-      ];
-
-      for (const [field, names] of Object.entries(fields)) {
-        result.push(Number of students in ${field}: ${names.length}. List: ${names.join(', ')});
+      let output = 'Number of students: ${allStudents.length}\n';
+      for (const [field, students] of Object.entries(studentsByField)) {
+        output += 'Number of students in ${field}: ${students.length}. List: ${students.join(', ')}\n';
       }
 
-      resolve(result.join('\n'));
+      resolve(output.trim());
     });
   });
 }
 
-// HTTP server logic
-const app = http.createServer(async (req, res) => {
+const app = http.createServer((req, res) => {
   if (req.url === '/') {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('Hello Holberton School!');
   } else if (req.url === '/students') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.write('This is the list of our students\n');
+    const database = process.argv[2];
 
-    try {
-      const studentData = await countStudents(databaseFile);
-      res.end(studentData);
-    } catch (err) {
-      res.end(err.message);
+    if (!database) {
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      res.end('Database file not provided');
+      return;
     }
+
+    countStudents(database)
+      .then((data) => {
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end(This is the list of our students\n${data});
+      })
+      .catch((err) => {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end(err.message);
+      });
   } else {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('Not Found');
   }
 });
 
-// Listen on port 1245
-app.listen(1245);
+app.listen(1245, () => {
+  console.log('Server is running on port 1245');
+});
 
-// Export the app variable
 module.exports = app;

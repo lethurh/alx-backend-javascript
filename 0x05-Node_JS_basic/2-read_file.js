@@ -2,47 +2,42 @@ const fs = require('fs');
 
 function countStudents(path) {
   try {
-    // Read the file content synchronously
+    // Read the file synchronously
     const data = fs.readFileSync(path, 'utf-8');
     
-    // Split data into lines, filtering out any empty lines
+    // Split the file into lines and filter out empty ones
     const lines = data.split('\n').filter((line) => line.trim() !== '');
 
-    // Remove the header line (first line)
-    const headers = lines.shift().split(',');
+    if (lines.length <= 1) {
+      throw new Error('Cannot load the database');
+    }
 
-    // Define a map to store students by field
-    const fields = {};
+    // Extract headers and data
+    const headers = lines[0].split(',');
+    const records = lines.slice(1).map((line) => line.split(','));
 
-    // Iterate over each line to process student data
-    lines.forEach((line) => {
-      const student = line.split(',');
-
-      // Ensure the line is not malformed (matches header length)
-      if (student.length === headers.length) {
-        const firstName = student[0];
-        const field = student[student.length - 1];
-
-        // If the field is not present in the map, initialize it
-        if (!fields[field]) {
-          fields[field] = [];
+    // Group students by field
+    const studentsByField = {};
+    for (const record of records) {
+      if (record.length === headers.length) {
+        const field = record[headers.length - 1]; // Assuming last column is the field
+        const firstName = record[0];
+        if (!studentsByField[field]) {
+          studentsByField[field] = [];
         }
-        // Add student to the field
-        fields[field].push(firstName);
+        studentsByField[field].push(firstName);
       }
-    });
+    }
 
-    // Calculate the total number of students
-    const totalStudents = Object.values(fields).reduce((acc, students) => acc + students.length, 0);
-    
-    console.log('Number of students: ${totalStudents}');
+    // Log total number of students
+    const totalStudents = Object.values(studentsByField).reduce((sum, students) => sum + students.length, 0);
+    console.log(Number of students: ${totalStudents});
 
-    // Print each field with the number of students and list of names
-    for (const [field, students] of Object.entries(fields)) {
-      console.log('Number of students in ${field}: ${students.length}. List: ${students.join(', ')}');
+    // Log students count and list per field
+    for (const [field, students] of Object.entries(studentsByField)) {
+      console.log(Number of students in ${field}: ${students.length}. List: ${students.join(', ')});
     }
   } catch (error) {
-    // Handle the case where the file can't be read
     throw new Error('Cannot load the database');
   }
 }
