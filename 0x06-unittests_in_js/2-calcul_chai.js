@@ -1,20 +1,23 @@
+/**
+ * Round params and sum them
+ * @param {string} type
+ * @param {number} a
+ * @param {number} b
+ */
 function calculateNumber(type, a, b) {
-  const roundedA = Math.round(a);
-  const roundedB = Math.round(b);
-
-  switch (type) {
-    case 'SUM':
-      return roundedA + roundedB;
-    case 'SUBTRACT':
-      return roundedA - roundedB;
-    case 'DIVIDE':
-      if (roundedB === 0) {
-        return 'Error';
-      }
-      return roundedA / roundedB;
-    default:
-      throw new Error('Invalid operation type');
+  let result;
+  if (type === 'SUM') {
+    result = Math.round(a) + Math.round(b);
+  } else if (type === 'SUBTRACT') {
+    result = Math.round(a) - Math.round(b);
+  } else if (type === 'DIVIDE') {
+    if (Math.abs(Math.round(b)) === 0) {
+      result = 'Error';
+    } else {
+      result = Math.round(a) / Math.round(b);
+    }
   }
+  return result;
 }
 
 module.exports = calculateNumber;
